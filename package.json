@@ -1,0 +1,13 @@
+{
+  "name": "mcp-pytest-server",
+  "version": "0.1.0",
+  "description": "MCP server for pytest",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  },
+  "scripts": {
+    "start": "node index.js"
+  }
+}

@@ -1,0 +1,101 @@
+{
+  "entities": [
+    {
+      "name": "mcp_pytest_server",
+      "entityType": "service",
+      "observations": [
+        "Implemented in Node.js",
+        "Provides MCP service tools for pytest integration",
+        "Published as '@modelcontextprotocol/mcp-pytest-server' on npm"
+      ]
+    },
+    {
+      "name": "conftest.py",
+      "entityType": "configuration",
+      "observations": [
+        "Configures pytest to integrate with MCP services",
+        "Located at /Users/kieranlal/workspace/textgrad/tests/conftest.py"
+      ]
+    },
+    {
+      "name": "python_sdk",
+      "entityType": "development_tool",
+      "observations": [
+        "Provides Python client for MCP integration",
+        "Located at /Users/kieranlal/workspace/mcp-pytest-server/python-sdk",
+        "Installed in development mode"
+      ]
+    },
+    {
+      "name": "record_session_start",
+      "entityType": "tool",
+      "observations": [
+        "Initializes context for test run",
+        "Creates/updates TestRun_Latest and Env_Current entities",
+        "Clears previous test run data"
+      ]
+    },
+    {
+      "name": "record_test_outcome",
+      "entityType": "tool",
+      "observations": [
+        "Records outcome of individual test cases",
+        "Tracks passed/failed/skipped status",
+        "Records test duration and error information"
+      ]
+    },
+    {
+      "name": "record_session_finish",
+      "entityType": "tool",
+      "observations": [
+        "Records summary of entire test run",
+        "Updates TestRun_Latest status to finished",
+        "Tracks total tests and exit status"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "mcp_pytest_server",
+      "to": "record_session_start",
+      "relationType": "provides_tool"
+    },
+    {
+      "from": "mcp_pytest_server",
+      "to": "record_test_outcome",
+      "relationType": "provides_tool"
+    },
+    {
+      "from": "mcp_pytest_server",
+      "to": "record_session_finish",
+      "relationType": "provides_tool"
+    },
+    {
+      "from": "conftest.py",
+      "to": "mcp_pytest_server",
+      "relationType": "integrates_with"
+    },
+    {
+      "from": "python_sdk",
+      "to": "mcp_pytest_server",
+      "relationType": "supports"
+    }
+  ],
+  "observations": [
+    {
+      "entityName": "mcp_pytest_server",
+      "observations": [
+        "Running published npm package, not locally compiled",
+        "Executable path: /Users/kieranlal/.npm/_npx/15b07286cbcc3329/node_modules/.bin/mcp-server-memory"
+      ]
+    },
+    {
+      "entityName": "python_sdk",
+      "observations": [
+        "Not published on any package manager",
+        "Used internally by pytest integration",
+        "Available to all Python projects on the system"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "entities": [
+    {
+      "name": "Cline_Custom_Instructions",
+      "entityType": "concept",
+      "observations": [
+        "Sets of guidelines to tailor AI behavior",
+        "Used for specific tasks or projects",
+        "Enforces coding practices and standards",
+        "Automates repetitive development tasks",
+        "Improves code quality and maintainability"
+      ]
+    },
+    {
+      "name": "Python_Development",
+      "entityType": "development_environment",
+      "observations": [
+        "Uses virtual environments with python -m venv",
+        "Manages packages with uv",
+        "Effective for code generation and prototyping",
+        "Supports LLM functionality integration",
+        "Facilitates documentation generation"
+      ]
+    },
+    {
+      "name": "MCP_Servers",
+      "entityType": "system_component",
+      "observations": [
+        "Extend Cline's capabilities",
+        "Provide specialized tools and resources",
+        "Offer consistent interface through MCP protocol",
+        "Enhance automation and efficiency",
+        "Include git-server, memory, and pytest-mcp"
+      ]
+    },
+    {
+      "name": "MCP_Inspector",
+      "entityType": "tool",
+      "observations": [
+        "Provides web interface for monitoring MCP servers",
+        "Available at http://localhost:5173",
+        "Supports debugging of MCP services",
+        "Allows viewing server logs and status",
+        "Enables execution of tools and monitoring"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "from": "Cline_Custom_Instructions",
+      "to": "Python_Development",
+      "relationType": "supports"
+    },
+    {
+      "from": "Cline_Custom_Instructions",
+      "to": "MCP_Servers",
+      "relationType": "integrates_with"
+    },
+    {
+      "from": "MCP_Servers",
+      "to": "MCP_Inspector",
+      "relationType": "monitored_by"
+    }
+  ],
+  "observations": [
+    {
+      "entityName": "Cline_Custom_Instructions",
+      "observations": [
+        "Standardizes file structures and naming conventions",
+        "Guides testing procedures with Pytest and Hypothesis"
+      ]
+    },
+    {
+      "entityName": "Python_Development",
+      "observations": [
+        "Supports API interactions and code transformations",
+        "Facilitates systematic prompt testing and refinement"
+      ]
+    },
+    {
+      "entityName": "MCP_Servers",
+      "observations": [
+        "Provides dedicated tools for version control",
+        "Offers knowledge graph management capabilities",
+        "Includes secure file system operations"
+      ]
+    }
+  ]
+}

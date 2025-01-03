@@ -1,0 +1,22 @@
+# Node.js
+package-lock.json
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+env/
+.venv/
+.env/
+*.egg-info/
+*.egg
+
+# Logs
+nohup.out
+output.log
+
+# Editors
+.vscode/
+.idea/
