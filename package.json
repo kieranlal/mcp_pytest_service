@@ -1,13 +1,17 @@
 {
-  "name": "mcp-pytest-server",
-  "version": "0.1.0",
-  "description": "MCP server for pytest",
-  "main": "index.js",
+  "name": "mcp_pytest_service",
+  "version": "1.0.0",
   "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4"
   },
-  "scripts": {
-    "start": "node index.js"
-  }
+  "description": ""
 }
