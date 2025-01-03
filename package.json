@@ -5,13 +5,14 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
+    "postinstall": "cd node_modules/@modelcontextprotocol/sdk && npm install && npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "description": "",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.0.4"
-  },
-  "description": ""
+    "@modelcontextprotocol/sdk": "file:sdk_source/modelcontextprotocol-sdk-1.0.4.tgz"
+  }
 }

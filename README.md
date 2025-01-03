@@ -168,6 +168,60 @@ The MCP pytest integration consists of multiple components:
   4. To update, simply pull the latest changes from the repository
 
 ## Implementation Status
+
+## Current Challenges
+
+We are experiencing a circular dependency issue in the build/test process:
+
+1. Building TypeScript files successfully generates JavaScript files in sdk_source/dist/
+2. Attempting to run test-sdk.js results in the following error due to missing exports configuration in package.json:
+   ```
+   Error [ERR_PACKAGE_PATH_NOT_EXPORTED]: Package subpath './dist/client/index' is not defined by "exports" in /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/package.json
+   ```
+   This error occurs when running:
+   ```bash
+   node test-sdk.js
+   ```
+   
+   The error indicates that the package.json needs proper exports configuration to expose the built files. According to Node.js documentation, the exports field should be configured like this:
+   ```json
+   {
+     "exports": {
+       "./client": {
+         "import": "./dist/client/index.js",
+         "require": "./dist/client/index.js"
+       },
+       "./server": {
+         "import": "./dist/server/index.js",
+         "require": "./dist/server/index.js"
+       }
+     }
+   }
+   ```
+   This configuration would allow proper resolution of the package subpaths.
+3. Trying to use the tarball (modelcontextprotocol-sdk-1.0.4.tgz) reveals it's empty
+4. Attempting to use the npm package also shows it's empty
+5. Returning to source and rebuilding TypeScript files puts us back at step 1
+
+This creates an infinite loop where we cannot successfully test the built SDK due to package configuration issues.
+
+### SDK Build Output
+The SDK TypeScript source files have been successfully built to JavaScript with the following output files in sdk_source/dist/:
+- types.js
+- shared/transport.js
+- shared/protocol.js  
+- client/index.js
+- client/sse.js
+- client/stdio.js
+- client/websocket.js
+- server/index.js
+- server/sse.js
+- server/stdio.js
+- cli.js
+- inMemory.js
+
+Each JavaScript file has corresponding .map and .d.ts files for source mapping and type definitions.
+
 The core functionality for all three tools (record_session_start, record_test_outcome, record_session_finish) has been implemented in index.js. The implementation includes:
 
 **Implementation Status:** The core functionality for all three tools (record_session_start, record_test_outcome, record_session_finish) has been implemented in index.js. The implementation includes:
