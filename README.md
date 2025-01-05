@@ -8,6 +8,8 @@ We are running the published npm package (@modelcontextprotocol/mcp-pytest-serve
 
 For reference, the Python SDK releases are available at: https://github.com/modelcontextprotocol/python-sdk/tags
 
+<a href="https://glama.ai/mcp/servers/vrkz0o2puq"><img width="380" height="200" src="https://glama.ai/mcp/servers/vrkz0o2puq/badge" alt="Pytest Server MCP server" /></a>
+
 ## Viewing Logs
 To view the server output and logs:
 1. View the live terminal output where the server is running
