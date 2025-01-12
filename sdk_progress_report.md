@@ -1,61 +1,74 @@
 ## MCP Pytest Service Build Status
 
+Key changes from clean state:
+- Added postinstall script to automatically build SDK
+- Updated dependencies to use local tarball
+- Enhanced testing capabilities in test-sdk.js
+- Documented build process in README.md
+- Implemented enhanced logging with:
+  * Connection lifecycle tracking
+  * Error handling for failed connections
+  * Request/response logging
+  * Connection metrics tracking
+
 The MCP Pytest Service SDK was successfully built with the following files emitted:
 
-- types.js
-- types.js.map
-- types.d.ts
-- types.d.ts.map
-- shared/transport.js
-- shared/transport.js.map
-- shared/transport.d.ts
-- shared/transport.d.ts.map
-- shared/protocol.js
-- shared/protocol.js.map
-- shared/protocol.d.ts
-- shared/protocol.d.ts.map
-- client/index.js
-- client/index.js.map
-- client/index.d.ts
-- client/index.d.ts.map
-- client/sse.js
-- client/sse.js.map
-- client/sse.d.ts
-- client/sse.d.ts.map
-- shared/stdio.js
-- shared/stdio.js.map
-- shared/stdio.d.ts
-- shared/stdio.d.ts.map
-- client/stdio.js
-- client/stdio.js.map
-- client/stdio.d.ts
-- client/stdio.d.ts.map
-- client/websocket.js
-- client/websocket.js.map
-- client/websocket.d.ts
-- client/websocket.d.ts.map
-- server/index.js
-- server/index.js.map
-- server/index.d.ts
-- server/index.d.ts.map
-- server/sse.js
-- server/sse.js.map
-- server/sse.d.ts
-- server/sse.d.ts.map
-- server/stdio.js
-- server/stdio.js.map
-- server/stdio.d.ts
-- server/stdio.d.ts.map
-- cli.js
-- cli.js.map
-- cli.d.ts
-- cli.d.ts.map
-- inMemory.js
-- inMemory.js.map
-- inMemory.d.ts
-- inMemory.d.ts.map
+```
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/types.js
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/types.js.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/types.d.ts
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/types.d.ts.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/shared/transport.js
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/shared/transport.js.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/shared/transport.d.ts
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/shared/transport.d.ts.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/shared/protocol.js
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/shared/protocol.js.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/shared/protocol.d.ts
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/shared/protocol.d.ts.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/client/index.js
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/client/index.js.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/client/index.d.ts
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/client/index.d.ts.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/client/sse.js
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/client/sse.js.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/client/sse.d.ts
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/client/sse.d.ts.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/shared/stdio.js
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/shared/stdio.js.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/shared/stdio.d.ts
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/shared/stdio.d.ts.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/client/stdio.js
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/client/stdio.js.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/client/stdio.d.ts
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/client/stdio.d.ts.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/client/websocket.js
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/client/websocket.js.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/client/websocket.d.ts
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/client/websocket.d.ts.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/server/index.js
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/server/index.js.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/server/index.d.ts
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/server/index.d.ts.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/server/sse.js
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/server/sse.js.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/server/sse.d.ts
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/server/sse.d.ts.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/server/stdio.js
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/server/stdio.js.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/server/stdio.d.ts
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/server/stdio.d.ts.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/cli.js
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/cli.js.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/cli.d.ts
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/cli.d.ts.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/inMemory.js
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/inMemory.js.map
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/inMemory.d.ts
+TSFILE: /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/dist/inMemory.d.ts.map
+```
 
-The MCP Pytest Service server is currently running on stdio. Service availability was confirmed by successfully executing a git_status command through the MCP interface.
+The MCP Pytest Service server is running on port 3000 but is not properly serving content at the root URL (http://localhost:3000 returns "Cannot GET /"). The SSE endpoint at http://localhost:3000/sse is experiencing frequent connection drops, with the terminal showing repeated "SSE connection closed" and "Got new SSE connection" messages. While basic service availability was confirmed through git_status commands, the connection stability issues are more severe than initially reported.
 
 ## MCP Pytest Service Dependency Risk Assessment
 

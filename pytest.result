@@ -1,0 +1,12 @@
+{"environment": {"os": "darwin", "python_version": "3.13.1 (main, Dec  3 2024, 17:59:52) [Clang 16.0.0 (clang-1600.0.26.4)]"}}===================================================================================== test session starts ======================================================================================
+platform darwin -- Python 3.13.1, pytest-8.3.4, pluggy-1.5.0
+rootdir: /Users/kieranlal/workspace/textgrad
+configfile: pytest.ini
+plugins: anyio-4.7.0, asyncio-0.25.1
+asyncio: mode=Mode.STRICT, asyncio_default_fixture_loop_scope=None
+collecting ... 
+------------------------------------------------------------------------------------- live log collection --------------------------------------------------------------------------------------
+2025-01-04 19:55:39 - INFO - HTTP Request: GET https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json "HTTP/1.1 200 OK"
+collected 40 items                                                                                                                                                                             
+
+test_api.py::test_api_with_engine[deepseek] {"test_file": "/Users/kieranlal/workspace/textgrad/tests/test_api.py", "test_name": "tests/test_api.py::test_api_with_engine[deepseek]", "timestamp": "2025-01-04T19:55:40.859262", "outcome": "failed", "duration_seconds": 0.0905909538269043, "error": "<ExceptionInfo AssertionError(\"Value must be a string or bytes. Got: <class 'NoneType'>\") tblen=32>", "stdout": "", "stderr": ""}

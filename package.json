@@ -18,7 +18,7 @@
   "license": "ISC",
   "description": "JavaScript implementation of MCP server for pytest integration",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "file:sdk_source/modelcontextprotocol-sdk-1.0.4.tgz"
+    "@modelcontextprotocol/sdk": "1.0.4"
   },
   "devDependencies": {
     "jest": "^29.7.0",
