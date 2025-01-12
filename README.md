@@ -1,415 +1,213 @@
-# Pytest MCP Service
+# mcp_pytest_service
 
-## Package Status
-We are running the published npm package (@modelcontextprotocol/mcp-pytest-server), not locally compiled source. This is confirmed by:
-- The executable path: ~/.npm/_npx/15b07286cbcc3329/node_modules/.bin/mcp-server-memory
-- The package.json configuration specifying the binary should be built to dist/index.js
-- The presence in the npm global cache
+This README provides an overview of the `mcp_pytest_service`, including its purpose, dependencies, build process, and how to run it. It is based on patterns observed in the `memory` MCP server.
 
-For reference, the Python SDK releases are available at: https://github.com/modelcontextprotocol/python-sdk/tags
+## Project Overview
 
-## Viewing Logs
-To view the server output and logs:
-1. View the live terminal output where the server is running
-2. Check the log file at ~/workspace/mcp-pytest-server/output.log
-3. Use tail to follow the log in real-time:
-   ```bash
-   tail -f ~/workspace/mcp-pytest-server/output.log
-   ```
-4. For historical logs, use less or cat:
-   ```bash
-   less ~/workspace/mcp-pytest-server/output.log
-   cat ~/workspace/mcp-pytest-server/output.log
-   ```
+The `mcp_pytest_service` is an MCP (Model Context Protocol) server that integrates with pytest to provide context and memory capabilities for test runs. It allows capturing and storing information about test sessions, environments, and individual test outcomes.
 
-## Getting Started
+## Dependencies
 
-### Prerequisites
-- Node.js v16 or higher
-- Python 3.8 or higher
-- npm installed
-- Memory service (@modelcontextprotocol/server-memory) running (recommended to use uvx for background execution):
-  1. Install uvx: `npm install -g uvx`
-  2. Create uvx config (uvx.config.js):
-     ```javascript
-     module.exports = {
-       services: {
-         memory: {
-           command: 'node ~/.npm/_npx/15b07286cbcc3329/node_modules/.bin/mcp-server-memory',
-           autorestart: true,
-           log: 'memory.log',
-           env: {
-             NODE_ENV: 'production'
-           }
-         }
-       }
-     }
-     ```
-  3. Start service: `uvx start memory`
+The `mcp_pytest_service` has the following dependencies:
 
-## Installation for mcp-pytest-server development only
+-   **MCP SDK (`@modelcontextprotocol/sdk`)**: This is the core dependency for building MCP servers. It provides the necessary classes and interfaces for creating servers, defining tools, and handling requests. The `mcp_pytest_service` uses the `Server` class and `StdioServerTransport` from the SDK for communication.
+-   **Node.js**: The service is built using Node.js and requires a compatible version to be installed.
+-   **TypeScript**: The service is written in TypeScript and requires the TypeScript compiler (`tsc`) for building.
+-   **pytest** (for testing): The service integrates with pytest and requires it for running tests.
 
-### Navigate to Project Directory
-```bash
-cd ~/workspace/mcp-pytest-server
-```
+## Building
 
-### Install JavaScript Dependencies
-```bash
-npm install @modelcontextprotocol/sdk
-npm install
-```
+The build process for `mcp_pytest_service` involves compiling the TypeScript code and making the output executable. The following steps are typically involved:
 
-### Start MCP Pytest Server
-```bash
-node index.js
-```
+1. **Compile TypeScript:**
+    
+    -   The TypeScript compiler (`tsc`) is used to compile the TypeScript source code into JavaScript.
+    -   The `tsconfig.json` file configures the compilation process, including strict type checking, ES module support, and source map generation.
+    -   The compiled JavaScript files are output to the `build` directory.
+2. **Make Executable:**
+    
+    -   The main entry point file (e.g., `build/index.js`) is made executable using `chmod`. This allows the server to be run directly using `node build/index.js`.
+3. **Package (Optional):**
+    
+    -   The service can be packaged for distribution using a package manager like npm. This typically involves creating a `package.json` file with the necessary metadata, dependencies, and scripts.
 
-### Run Pytest with MCP Integration
-```bash
-pytest --mcp
-```
+## Running
 
-## Inspecting Services
+The `mcp_pytest_service` can be run in different ways depending on its implementation and how it's packaged. Here's a guide on when to use `uvx`, `npx`, or `node`:
 
-### Inspecting the Memory Service
-To inspect the memory service:
+**1. Running MCP Servers with `uvx` (Python-based):**
 
-1. Start the service in debug mode:
-   ```bash
-   npx --node-options='--inspect' @modelcontextprotocol/server-memory
-   ```
+-   Use `uvx` to run MCP servers that are:
+    -   Installed as **pip packages** (Python packages)
+    -   Implemented as **local Python source files**
+-   `uvx` is a tool specifically designed for managing and running MCP servers implemented in Python.
+-   Install `uvx` globally using npm (it's distributed as an npm package for convenience):
 
-2. Open Chrome DevTools at chrome://inspect
+    ```bash
+    npm install -g uvx
+    ```
 
-3. Click "Open dedicated DevTools for Node"
+-   Example for running an MCP server implemented as a local Python package with `uvx`:
 
-4. Set breakpoints and inspect the service's execution
+    ```bash
+    uvx mcp-server-git --repository /Users/kieranlal/workspace/mcp_pytest_service
+    ```
 
-Alternatively, use VSCode's built-in Node.js debugging:
-1. Create a launch.json configuration:
-```json
-{
-  "type": "node",
-  "request": "launch",
-  "name": "Debug Memory Service",
-  "runtimeExecutable": "npx",
-  "runtimeArgs": ["@modelcontextprotocol/server-memory"],
-  "args": [],
-  "console": "integratedTerminal"
-}
-```
+    This command starts the `mcp-server-git` tool, which is configured to run an MCP service from the specified repository.
 
-### Inspecting the MCP-Pytest Service during development
-To inspect the mcp-pytest service:
+**2. Running MCP Servers with `npx` (JavaScript-based, npm packages):**
 
-1. Start the service in debug mode:
-   ```bash
-   node --inspect ~/workspace/mcp-pytest-server/index.js
-   ```
+-   Use `npx` to run MCP servers that are:
+    -   Implemented in **JavaScript**
+    -   Published as **npm packages**
+-   `npx` is a tool for running npm packages without needing to install them globally.
 
-2. Open Chrome DevTools at chrome://inspect
+-   Example:
 
-3. Click "Open dedicated DevTools for Node"
+    ```bash
+    npx @modelcontextprotocol/mcp-server-example
+    ```
 
-4. Set breakpoints and inspect the service's execution
+**3. Running MCP Servers with `node` (JavaScript-based, local source):**
 
-Alternatively, use VSCode's built-in Node.js debugging:
-1. Create a launch.json configuration:
-```json
-{
-  "type": "node",
-  "request": "launch",
-  "name": "Debug MCP-Pytest Service",
-  "program": "${workspaceFolder}/index.js",
-  "console": "integratedTerminal"
-}
-```
+-   Use `node` to run MCP servers that are:
+    -   Implemented in **JavaScript**
+    -   Have **local JavaScript source files**
+-   This is typically used during development or when the server is not packaged as an npm package.
 
-## Architecture and Implementation
+-   Example:
 
-## Overview
-The MCP pytest integration consists of multiple components:
-1. **mcp-pytest-server**: A Node.js server that implements the MCP service tools
-2. **conftest.py**: Test configuration that integrates pytest with the MCP service
-3. **SDKs**: Both JavaScript and Python SDKs for MCP integration
+    ```bash
+    node path/to/your/mcp_server.js
+    ```
 
-## Component Details
+**In the specific case of `mcp_pytest_service`:**
 
-### mcp-pytest-server (JavaScript)
-- Location: ~/workspace/mcp-pytest-server
-- Implementation: Node.js (index.js)
-- Status: Running the published npm package (not locally compiled)
-- Package Status: Published as '@modelcontextprotocol/mcp-pytest-server' on npm
-- Executable Path: ~/.npm/_npx/15b07286cbcc3329/node_modules/.bin/mcp-server-memory (confirms published package usage)
-- Functionality: Provides MCP service tools for pytest integration
+-   Since it's being developed locally and uses `mcp-server-git` (which is Python-based), you would typically use `uvx` as shown in the example above.
+-   If it were a JavaScript-based server published as an npm package, you would use `npx`.
+-   If it were a JavaScript-based server with local source files, you would use `node`.
+-   When running with npm exec, ensure the source file is executable by running:
+    ```bash
+    chmod +x src/index.js
+    ```
 
-### conftest.py (Python)
-- Location: ~/workspace/textgrad/tests/conftest.py
-- Purpose: Configures pytest to integrate with MCP services
-- Current State: Successfully using Python SDK from ~/workspace/mcp-pytest-server/python-sdk
+## Tool Definitions
 
-### SDKs
-#### JavaScript SDK
-- Location: https://github.com/modelcontextprotocol/typescript-sdk
-- Package Status: Published as '@modelcontextprotocol/sdk' on npm
-- Usage: Can be installed via npm install @modelcontextprotocol/sdk
-- Implementation: Provides TypeScript/JavaScript client for MCP integration
+MCP servers define tools that can be called by clients. Tools are defined using JSON Schema to specify their input and output structures. The `mcp_pytest_service` defines the following tools:
 
-#### Python SDK
-- Location: ~/workspace/mcp-pytest-server/python-sdk
-- Package Status: Not published on any package manager (PyPI, Conda, etc.)
-- Usage: Used internally by pytest integration
-- Implementation: Provides Python client for MCP integration
-- Installation for Multiple Projects:
-  1. Navigate to the package directory: cd ~/workspace/mcp-pytest-server/python-sdk
-  2. Install in development mode: pip install -e .
-  3. The package will now be available to all Python projects on the system
-  4. To update, simply pull the latest changes from the repository
+1. **`record_session_start`**: Called at the beginning of a pytest session to initialize the context for the current test run.
+    
+    -   Input:
+        
+        ```json
+        {
+          "environment": {
+            "os": "string",
+            "python_version": "string"
+          }
+        }
+        
+        ```
+        
+2. **`record_test_outcome`**: Called after each individual test case to record its outcome.
+    
+    -   Input:
+        
+        ```json
+        {
+          "nodeid": "string",
+          "outcome": "string (passed|failed|skipped)",
+          "duration": "number",
+          "error": "string (optional)"
+        }
+        
+        ```
+        
+3. **`record_session_finish`**: Called at the end of a pytest session to record summary information.
+    
+    -   Input:
+        
+        ```json
+        {
+          "summary": {
+            "total_tests": "integer",
+            "passed": "integer",
+            "failed": "integer",
+            "skipped": "integer",
+            "exitstatus": "integer"
+          }
+        }
+        
+        ```
+        
+
+These tools are exposed through the `server.setRequestHandler()` API, as seen in the `memory` server implementation.
+
+## Memory Server Example
+
+The `memory` MCP server provides a good example of how to build and run MCP servers. Its `package.json` and `tsconfig.json` files demonstrate the following patterns:
+
+-   Using the `Server` class and `StdioServerTransport` from the MCP SDK.
+-   Defining project metadata, dependencies, and scripts in `package.json`.
+-   Configuring TypeScript with strict type checking and ES module support in `tsconfig.json`.
+-   Defining tool interfaces and input schemas using JSON Schema.
+-   Exposing tools through the `server.setRequestHandler()` API.
+
+These patterns can be used as a reference for building and running the `mcp_pytest_service`.
 
 ## Implementation Status
 
-## Current Challenges
+The `mcp_pytest_service` is designed to integrate with the **TypeScript** version of the MCP SDK, not the Python SDK. It depends on the **MCP memory service** to store and retrieve information about test runs. Before running this service, ensure that the memory service is installed and running in the environment.
 
-We are experiencing a circular dependency issue in the build/test process:
+The implementation of this service is similar to other MCP services like `memory`, `github`, `git`, and `fileserver`, all of which are typically run using `npx` when they are published as npm packages in the development environment.
 
-1. Building TypeScript files successfully generates JavaScript files in sdk_source/dist/
-2. Attempting to run test-sdk.js results in the following error due to missing exports configuration in package.json:
-   ```
-   Error [ERR_PACKAGE_PATH_NOT_EXPORTED]: Package subpath './dist/client/index' is not defined by "exports" in /Users/kieranlal/workspace/mcp_pytest_service/sdk_source/package.json
-   ```
-   This error occurs when running:
-   ```bash
-   node test-sdk.js
-   ```
-   
-   The error indicates that the package.json needs proper exports configuration to expose the built files. According to Node.js documentation, the exports field should be configured like this:
-   ```json
-   {
-     "exports": {
-       "./client": {
-         "import": "./dist/client/index.js",
-         "require": "./dist/client/index.js"
-       },
-       "./server": {
-         "import": "./dist/server/index.js",
-         "require": "./dist/server/index.js"
-       }
-     }
-   }
-   ```
-   This configuration would allow proper resolution of the package subpaths.
-3. Trying to use the tarball (modelcontextprotocol-sdk-1.0.4.tgz) reveals it's empty
-4. Attempting to use the npm package also shows it's empty
-5. Returning to source and rebuilding TypeScript files puts us back at step 1
+The source code for these packages is available as a reference for using the MCP SDK:
 
-This creates an infinite loop where we cannot successfully test the built SDK due to package configuration issues.
+-   `memory`: Implements a basic in-memory knowledge graph. (npm package: `@modelcontextprotocol/server-memory`)
+-   `github`: Provides tools for interacting with the GitHub API. (npm package: `@modelcontextprotocol/server-github`)
+-   `git`: Offers Git repository management capabilities. (Uses the `mcp-server-git` tool, with multiple instances in the configuration: `git-textgrad`, `git-mcp_pytest_service`, `git-ixl_scraper`, `git-mcp-installer`)
+-   `fileserver`: Enables file system operations. (npm package: `@modelcontextprotocol/server-filesystem`)
 
-### SDK Build Output
-The SDK TypeScript source files have been successfully built to JavaScript with the following output files in sdk_source/dist/:
-- types.js
-- shared/transport.js
-- shared/protocol.js  
-- client/index.js
-- client/sse.js
-- client/stdio.js
-- client/websocket.js
-- server/index.js
-- server/sse.js
-- server/stdio.js
-- cli.js
-- inMemory.js
+By examining the source code of these services, you can gain a better understanding of how to structure and implement your own MCP servers using the TypeScript SDK.
 
-Each JavaScript file has corresponding .map and .d.ts files for source mapping and type definitions.
+## Available Tools
 
-The core functionality for all three tools (record_session_start, record_test_outcome, record_session_finish) has been implemented in index.js. The implementation includes:
+In addition to the tools defined in this service, the following MCP servers are also available:
 
-**Implementation Status:** The core functionality for all three tools (record_session_start, record_test_outcome, record_session_finish) has been implemented in index.js. The implementation includes:
-- Input validation for all tools
-- Proper error handling and logging
-- Tool registration and request handling
-- Basic response generation
+- `@modelcontextprotocol/server-memory`: Provides a basic in-memory knowledge graph.
+- `@modelcontextprotocol/server-github`: Offers tools for interacting with the GitHub API.
+- `mcp-server-git`: Enables Git repository management capabilities.
+- `@modelcontextprotocol/server-filesystem`: Allows file system operations.
+- `@modelcontextprotocol/server-sequential-thinking`: Newly installed server for sequential thinking capabilities.
 
-## 1. `record_session_start` [IMPLEMENTED]
+These servers can be used in conjunction with `mcp_pytest_service` to enhance its functionality and provide additional context for test runs.
 
-**Description:**
-This tool is called at the beginning of a pytest session. It initializes the context for the current test run by creating or updating the "TestRun_Latest" and "Env_Current" entities in the `memory` MCP server. Importantly, this tool also ensures that any data from previous test runs associated with "TestRun_Latest" is cleared to maintain a single source of truth for the last run.
+## Logging Configuration
 
-**Implementation Details:**
-- Input validation for environment.os and environment.python_version
-- Basic response generation with environment details
-- Error handling for invalid parameters
+The service is configured with the following logging setup:
 
-**Input Schema:**
-```json
-{
-  "environment": {
-    "os": "string",
-    "python_version": "string"
-  }
-}
+- Logs are stored in the `logs/` directory
+- Each log file is named with a timestamp in the format: YYYY-MM-DDTHH_MM_SS_SSSZ-debug-0.log
+- Logs include detailed information about:
+  - Server startup and initialization
+  - Tool execution and results
+  - Error conditions and stack traces
+  - Memory operations and state changes
+- Logs are rotated automatically, keeping a maximum of 10 files
 
-**Example Usage:**
-```
-mcp call pytest-mcp record_session_start '{"environment": {"os": "Macos", "python_version": "3.13.1"}}' 
-```
+## Pytest Integration
 
-Expected Behavior:
+The `mcp_pytest_service` integrates with pytest through a `conftest.py` file that defines pytest hooks. When you run pytest in a directory containing tests and the `conftest.py` file:
 
-Clear Previous Data: Deletes the "TestRun_Latest" entity and any relations where "TestRun_Latest" is the from or to entity from the memory MCP server. This ensures no accumulation of historical data.
-Create "Env_Current" Entity: Creates an entity named "Env_Current" with the entity type "TestEnvironment" and observations for the operating system and Python version.
-Create "TestRun_Latest" Entity: Creates an entity named "TestRun_Latest" with the entity type "TestRun" and an initial observation like "status: running".
-Create Relation: Creates a relation of type "ran_on" from "TestRun_Latest" to "Env_Current".
-Example Interaction (run in cline window):
-```
-use_mcp_tool pytest-mcp record_session_start '{"environment": {"os": "Macos", "python_version": "3.13.1"}}'
-```
+1. pytest automatically discovers and uses the `conftest.py` file
+2. The following hooks are triggered automatically:
+   - `pytest_sessionstart` at the beginning of the test session
+   - `pytest_runtest_makereport` after each test completes
+   - `pytest_sessionfinish` at the end of the test session
+3. These hooks call the corresponding MCP service tools:
+   - `record_session_start` at session start
+   - `record_test_outcome` after each test
+   - `record_session_finish` at session end
+4. The service communicates with the `server-memory` MCP server to store test data
 
-## 2. record_test_outcome [IMPLEMENTED]
-Description:
-This tool is called after each individual test case has finished executing. It records the outcome of the test (passed, failed, skipped), its duration, and any error information if the test failed.
-
-**Implementation Details:**
-- Input validation for nodeid, outcome, duration, and optional error
-- Basic response generation with test outcome details
-- Error handling for invalid parameters
-
-Input Schema:
-```
-{
-  "nodeid": "string",
-  "outcome": "string (passed|failed|skipped)",
-  "duration": "number",
-  "error": "string (optional)"
-}
-```
-
-Expected Behavior:
-
-Create/Update TestCase Entity: Creates or updates an entity with the name matching the nodeid (e.g., "test_module.py::test_function"), setting its entity type to "TestCase".
-Add Outcome Observation: Adds an observation with the format "outcome: <outcome>" to the TestCase entity.
-Add Duration Observation: Adds an observation with the format "duration: <duration>" to the TestCase entity.
-Add Error Observation (if applicable): If the outcome is "failed" and the error field is provided, add an observation with the format "error: <error>" to the TestCase entity.
-Create Relation: Creates a relation of type "contains_test" from "TestRun_Latest" to the TestCase entity.
-Example Interaction (run in cline window):
-```
-use_mcp_tool pytest-mcp record_test_outcome '{"nodeid": "test_module.py::test_example", "outcome": "passed", "duration": 0.123}'
-use_mcp_tool pytest-mcp record_test_outcome '{"nodeid": "test_module.py::test_failure", "outcome": "failed", "duration": 0.05, "error": "AssertionError: ... "}'
-```
-
-## 3. record_session_finish [IMPLEMENTED]
-Description:
-This tool is called at the end of a pytest session. It records summary information about the entire test run, such as the total number of tests, the counts of passed, failed, and skipped tests, and the exit status of the pytest process. It also updates the status of the "TestRun_Latest" entity to "finished".
-
-**Implementation Details:**
-- Input validation for summary object
-- Basic response generation with session summary
-- Error handling for invalid parameters
-
-Input Schema:
-```
-{
-  "summary": {
-    "total_tests": "integer",
-    "passed": "integer",
-    "failed": "integer",
-    "skipped": "integer",
-    "exitstatus": "integer"
-  }
-}
-```
-
-Expected Behavior:
-
-Update TestRun_Latest Status: Updates the "TestRun_Latest" entity's observation "status: running" to "status: finished".
-Add Summary Observations: Adds observations to the "TestRun_Latest" entity for total_tests, passed, failed, skipped, and exitstatus based on the input summary.
-Add End Time Observation: Adds an observation with the format "end_time: <timestamp>" to the "TestRun_Latest" entity.
-
-Example Interaction (run in cline window):
-```
-use_mcp_tool pytest-mcp record_session_finish '{"summary": {"total_tests": 10, "passed": 7, "failed": 2, "skipped": 1, "exitstatus": 0}}'
-```
-## Debugging the service
-```
-node ~/workspace/mcp-pytest-server/index.js
-```
-```
-ps aux | grep index.js
-sudo tcpdump -i any -s 0 -w mcp_traffic.pcap port <port_number>
-```
-cline
-```
-use_pytest-mcp
-```
-
-#Development
-Suggested Optimizations:
-## Faster JSON
-Use a Faster JSON Library: Replace the built-in json module with orjson for faster parsing and serialization.
-
-import orjson as json
-
-## Dispatch mechanism
-Implement a Dispatch Mechanism: Use dictionaries to map request types and tool names to handler functions.
-
-def handle_list_tools(request):
-    # ...
-
-def handle_record_session_start(args):
-    # ...
-
-# ... other tool handlers ...
-
-request_handlers = {
-    "list_tools": handle_list_tools,
-    "call_tool": {
-        "record_session_start": handle_record_session_start,
-        # ... other tools ...
-    }
-}
-
-def handle_request(request):
-    request_type = request["type"]
-    handler = request_handlers.get(request_type)
-
-    if handler:
-        if request_type == "call_tool":
-            tool_name = request["name"]
-            tool_handler = handler.get(tool_name)
-            if tool_handler:
-                tool_handler(request["arguments"])
-            else:
-                send_response({"type": "error", "code": -32601, "message": f"Unknown tool: {tool_name}"})
-        else:
-            handler(request)
-    else:
-        send_response({"type": "error", "code": -32601, "message": f"Unknown request type: {request_type}"})
-
-## Concurrency
-Concurrency: Explore using asynchronous programming (e.g., asyncio) or threading to handle multiple requests concurrently. This would require more significant changes to the server's structure.
-
-## Python SDK Implementation Summary
-
-### Current Status
-- Python SDK package structure created at ~/workspace/mcp-pytest-server/python-sdk
-- Basic package files implemented:
-  - setup.py with package configuration
-  - src/mcp/__init__.py with version information
-- Package successfully installed in development mode using pip install -e .
-- PYTHONPATH configuration verified to allow package import
-- Currently running as a development installation with full source access
-- Service level: Development/Testing (not production-ready)
-
-### Service Level Details
-- **Development Mode**: Running with pip install -e . allows for immediate code changes without reinstallation
-- **Source Access**: Full access to source code for debugging and development
-- **Dependencies**: Managed through setup.py with direct access to local development environment
-- **Stability**: Suitable for testing and development, not recommended for production use
-- **Performance**: May include debug logging and unoptimized code paths
-
-### Remaining Tasks
-- Implement core MCP client functionality in Python SDK
-- Add pytest integration hooks
-- Create proper test suite for Python SDK
-- Publish package to PyPI for easier distribution
-- Optimize for production deployment
+You do not need to manually run `conftest.py` - simply running `pytest` in the directory is sufficient to trigger the integration and update the memory with test results.
