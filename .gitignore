@@ -16,6 +16,7 @@ env/
 *.egg
 
 # Logs
+logs/*
 nohup.out
 output.log
 
