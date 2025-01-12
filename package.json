@@ -3,16 +3,40 @@
   "version": "1.0.0",
   "type": "module",
   "main": "src/index.js",
+  "bin": {
+    "mcp_pytest_service": "src/index.js"
+  },
   "scripts": {
     "start": "node src/index.js",
-    "postinstall": "cd node_modules/@modelcontextprotocol/sdk && npm install && npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "JavaScript implementation of MCP server for pytest integration",
   "dependencies": {
     "@modelcontextprotocol/sdk": "file:sdk_source/modelcontextprotocol-sdk-1.0.4.tgz"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.11",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.3"
+  },
+  "jest": {
+    "preset": "ts-jest/presets/default-esm",
+    "testEnvironment": "node",
+    "extensionsToTreatAsEsm": [".ts"],
+    "globals": {
+      "ts-jest": {
+        "useESM": true
+      }
+    },
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    }
   }
 }
