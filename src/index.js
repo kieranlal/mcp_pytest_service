@@ -8,10 +8,34 @@ import {
   McpError,
 } from "@modelcontextprotocol/sdk/types.js";
 import { MemoryClient } from "./MemoryClient.js";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from 'node:url';
+
+// Import the new schemas
+export const ServiceStatusRequestSchema = {
+  type: "object",
+  properties: {},
+  additionalProperties: false,
+};
+
+export const ServiceStatusResponseSchema = {
+  type: "object",
+  properties: {
+    name: { type: "string" },
+    version: { type: "string" },
+    command: { type: "string", nullable: true },
+    args: { type: "array", items: { type: "string" }, nullable: true },
+  },
+  required: ["name", "version"],
+  additionalProperties: false,
+};
 
 const SERVICE_NAME = "pytest-mcp";
-const SERVICE_VERSION = "0.1.0";
+const SERVICE_VERSION = "0.2.0"; // Incrementing version due to changes
 const DEBUG = process.env.DEBUG === "true";
+const LOGS_DIRECTORY = path.join(fileURLToPath(new URL('.', import.meta.url)), '../logs');
+const PYTEST_VERSION = process.env.PYTEST_VERSION || "unknown"; // Make pytest version configurable
 
 function log(level, message, data = {}) {
   const timestamp = new Date().toISOString();
@@ -35,27 +59,17 @@ function info(message, data = {}) {
   log("info", message, data);
 }
 
-import fs from "fs";
-import path from "path";
-
-function ensureLogsDirectory() {
-  const logsDir = path.join(path.dirname(new URL(import.meta.url).pathname), "../logs");
-  
-  if (!fs.existsSync(logsDir)) {
-    fs.mkdirSync(logsDir, { recursive: true });
+async function ensureLogsDirectory() {
+  try {
+    await fs.mkdir(LOGS_DIRECTORY, { recursive: true });
+  } catch (error) {
+    console.error(`Error creating logs directory: ${error}`);
   }
-  return logsDir;
 }
 
-function error(message, data = {}) {
-  
-  // Debug log to verify error function is called
+async function error(message, data = {}) {
   debug("Error function called", { message, data });
-  
-  // Ensure logs directory exists
-  const logsDir = ensureLogsDirectory();
-  
-  // Create log entry
+
   const timestamp = new Date().toISOString();
   const logEntry = {
     timestamp,
@@ -64,12 +78,16 @@ function error(message, data = {}) {
     message,
     ...data,
   };
-  
-  // Write to error log file
-  const logFilePath = path.join(logsDir, `error-${timestamp.split("T")[0]}.log`);
-  fs.appendFileSync(logFilePath, JSON.stringify(logEntry) + "\n");
-  
-  // Maintain existing console logging
+
+  const logFileName = `error-${new Date().toISOString().split("T")[0]}.log`;
+  const logFilePath = path.join(LOGS_DIRECTORY, logFileName);
+
+  try {
+    await fs.appendFile(logFilePath, JSON.stringify(logEntry) + "\n");
+  } catch (err) {
+    console.error(`Error writing to log file ${logFilePath}: ${err}`);
+  }
+
   log("error", message, data);
 }
 
@@ -115,15 +133,17 @@ class PytestMcpServer {
     );
 
     this.setupToolHandlers();
+    this.setupErrorHandling();
+  }
 
-    // Enhanced error handling
-    this.server.onerror = (error) => {
+  setupErrorHandling() {
+    this.server.onerror = (err) => {
       log("error", "MCP Error", {
-        error: error.message,
-        code: error.code,
-        stack: error.stack,
+        error: err.message,
+        code: err.code,
+        stack: err.stack,
       });
-      if (error.code === ErrorCode.MethodNotFound) {
+      if (err.code === ErrorCode.MethodNotFound) {
         log("error", "Available methods", {
           methods: [
             "record_session_start",
@@ -136,8 +156,23 @@ class PytestMcpServer {
 
     process.on("SIGINT", async () => {
       info("Received SIGINT, closing server");
-      await this.server.close();
+      await this.close();
       process.exit(0);
+    });
+
+    process.on("uncaughtException", (error) => {
+      error("Uncaught Exception", {
+        message: error.message,
+        stack: error.stack,
+      });
+      process.exit(1);
+    });
+
+    process.on("unhandledRejection", (reason, promise) => {
+      error("Unhandled Rejection", {
+        reason: reason instanceof Error ? reason.message : reason,
+        stack: reason instanceof Error ? reason.stack : undefined,
+      });
     });
   }
 
@@ -202,6 +237,12 @@ class PytestMcpServer {
             required: ["summary"],
           },
         },
+        {
+          name: "service_status",
+          description: "Get the status and configuration of the service.",
+          inputSchema: ServiceStatusRequestSchema,
+          outputSchema: ServiceStatusResponseSchema,
+        },
       ];
 
       return { tools };
@@ -213,11 +254,13 @@ class PytestMcpServer {
       try {
         switch (name) {
           case "record_session_start":
-            return await this.handleRecordSessionStart(args);
+            return await this.#handleRecordSessionStart(args);
           case "record_test_outcome":
-            return await this.handleRecordTestOutcome(args);
+            return await this.#handleRecordTestOutcome(args);
           case "record_session_finish":
-            return await this.handleRecordSessionFinish(args);
+            return await this.#handleRecordSessionFinish(args);
+          case "service_status":
+            return await this.#handleServiceStatus();
           default:
             throw new McpError(
               ErrorCode.MethodNotFound,
@@ -235,20 +278,26 @@ class PytestMcpServer {
       }
     });
   }
-
-  async handleRequest(type, params) {
-    try {
-      debug("Handling request", { type, params });
-      const response = await this.server.handleRequest(type, params);
-      debug("Request handled successfully", { type, response });
-      return response;
-    } catch (error) {
-      error("Error handling request", { type, params, error });
-      throw error;
-    }
+  async #handleServiceStatus() {
+    const status = {
+      name: SERVICE_NAME,
+      version: SERVICE_VERSION,
+      command: process.argv[0],
+      args: process.argv.slice(1),
+    };
+    
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(status, null, 2)
+        }
+      ]
+    };
   }
+  // Removed the general handleRequest method as it was redundant
 
-  async handleRecordSessionStart(args) {
+  async #handleRecordSessionStart(args) {
     if (!isValidRecordSessionStartArgs(args)) {
       throw new McpError(
         ErrorCode.InvalidParams,
@@ -261,47 +310,21 @@ class PytestMcpServer {
     // Clear previous data
     await this.memoryClient.deleteEntities(["TestRun_Latest"]);
     await this.memoryClient.deleteRelations([
-      {
-        from: "TestRun_Latest",
-        to: "*",
-        relationType: "*",
-      },
-      {
-        from: "*",
-        to: "TestRun_Latest",
-        relationType: "*",
-      },
+      { from: "TestRun_Latest", to: "*", relationType: "*" },
+      { from: "*", to: "TestRun_Latest", relationType: "*" },
     ]);
 
     // Create Env_Current entity
-    await this.memoryClient.createEntities([
-      {
-        name: "Env_Current",
-        entityType: "TestEnvironment",
-        observations: [
-          `OS: ${environment.os}`,
-          `Python Version: ${environment.python_version}`,
-        ],
-      },
+    await this.#createEntity("Env_Current", "TestEnvironment", [
+      `OS: ${environment.os}`,
+      `Python Version: ${environment.python_version}`,
     ]);
 
     // Create TestRun_Latest entity
-    await this.memoryClient.createEntities([
-      {
-        name: "TestRun_Latest",
-        entityType: "TestRun",
-        observations: ["status: running"],
-      },
-    ]);
+    await this.#createEntity("TestRun_Latest", "TestRun", ["status: running"]);
 
     // Create ran_on relation
-    await this.memoryClient.createRelations([
-      {
-        from: "TestRun_Latest",
-        to: "Env_Current",
-        relationType: "ran_on",
-      },
-    ]);
+    await this.#createRelation("TestRun_Latest", "Env_Current", "ran_on");
 
     debug("Successfully recorded session start", { environment });
 
@@ -317,7 +340,7 @@ class PytestMcpServer {
     };
   }
 
-  async handleRecordTestOutcome(args) {
+  async #handleRecordTestOutcome(args) {
     if (!isValidRecordTestOutcomeArgs(args)) {
       throw new McpError(
         ErrorCode.InvalidParams,
@@ -329,59 +352,27 @@ class PytestMcpServer {
     const [test_suite, test_name] = nodeid.split("::");
 
     // Create/update pytest entity
-    await this.memoryClient.createEntities([
-      {
-        name: "pytest",
-        entityType: "TestingFramework",
-        observations: [
-          "Python testing framework",
-          "Version: 7.4.0",
-          "Supports unit testing and functional testing"
-        ],
-      },
+    await this.#createEntity("pytest", "TestingFramework", [
+      "Python testing framework",
+      `Version: ${PYTEST_VERSION}`, // Using configurable pytest version
+      "Supports unit testing and functional testing",
     ]);
 
     // Create test result entity with detailed observations
-    await this.memoryClient.createEntities([
-      {
-        name: nodeid,
-        entityType: "TestResult",
-        observations: [
-          `outcome: ${outcome}`,
-          `duration: ${duration}s`,
-          `timestamp: ${new Date().toISOString()}`,
-          ...(error_message ? [`error: ${error_message}`] : []),
-        ],
-      },
+    await this.#createEntity(nodeid, "TestResult", [
+      `outcome: ${outcome}`,
+      `duration: ${duration}s`,
+      `timestamp: ${new Date().toISOString()}`,
+      ...(error_message ? [`error: ${error_message}`] : []),
     ]);
 
     // Create test suite entity if it doesn't exist
-    await this.memoryClient.createEntities([
-      {
-        name: test_suite,
-        entityType: "TestSuite",
-        observations: [],
-      },
-    ]);
+    await this.#createEntity(test_suite, "TestSuite", []);
 
     // Create relations
-    await this.memoryClient.createRelations([
-      {
-        from: nodeid,
-        to: "pytest",
-        relationType: "is_part_of",
-      },
-      {
-        from: nodeid,
-        to: test_suite,
-        relationType: "is_part_of",
-      },
-      {
-        from: "TestRun_Latest",
-        to: nodeid,
-        relationType: "contains_test",
-      },
-    ]);
+    await this.#createRelation(nodeid, "pytest", "is_part_of");
+    await this.#createRelation(nodeid, test_suite, "is_part_of");
+    await this.#createRelation("TestRun_Latest", nodeid, "contains_test");
 
     debug("Successfully recorded test outcome", {
       nodeid,
@@ -402,7 +393,7 @@ class PytestMcpServer {
     };
   }
 
-  async handleRecordSessionFinish(args) {
+  async #handleRecordSessionFinish(args) {
     if (!isValidRecordSessionFinishArgs(args)) {
       throw new McpError(
         ErrorCode.InvalidParams,
@@ -449,12 +440,26 @@ class PytestMcpServer {
     };
   }
 
+  // Helper function to create an entity
+  async #createEntity(name, entityType, observations = []) {
+    await this.memoryClient.createEntities([
+      { name, entityType, observations },
+    ]);
+  }
+
+  // Helper function to create a relation
+  async #createRelation(from, to, relationType) {
+    await this.memoryClient.createRelations([{ from, to, relationType }]);
+  }
+
   async run() {
     console.log(
       `[${SERVICE_NAME}] Starting ${SERVICE_NAME} (version ${SERVICE_VERSION}).`
     );
     console.log(`[${SERVICE_NAME}] Node.js version: ${process.version}`);
     console.log(`[${SERVICE_NAME}] Process platform: ${process.platform}`);
+
+    await ensureLogsDirectory(); // Ensure logs directory exists on startup
 
     const transport = new StdioServerTransport();
     console.log(`[${SERVICE_NAME}] Initializing stdio transport...`);
@@ -467,27 +472,23 @@ class PytestMcpServer {
         `[${SERVICE_NAME}] [Error] Failed to connect via stdio:`,
         error
       );
+      process.exit(2); // Use a specific exit code for connection failure
+    }
+  }
+
+  async close() {
+    try {
+      await this.server.close();
+      info("MCP server closed successfully.");
+    } catch (error) {
+      error("Error closing MCP server", {
+        message: error.message,
+        stack: error.stack,
+      });
       process.exit(1);
     }
   }
 }
-
-// Handle uncaught exceptions
-process.on("uncaughtException", (error) => {
-  error("Uncaught Exception", {
-    message: error.message,
-    stack: error.stack,
-  });
-  process.exit(1);
-});
-
-// Handle unhandled rejections
-process.on("unhandledRejection", (reason, promise) => {
-  error("Unhandled Rejection", {
-    reason: reason instanceof Error ? reason.message : reason,
-    stack: reason instanceof Error ? reason.stack : undefined,
-  });
-});
 
 const server = new PytestMcpServer();
 server.run().catch((error) => {

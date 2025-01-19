@@ -1,23 +1,23 @@
-# mcp_pytest_service
+# pytest-service
 
-This README provides an overview of the `mcp_pytest_service`, including its purpose, dependencies, build process, and how to run it. It is based on patterns observed in the `memory` MCP server.
+This README provides an overview of the `pytest-service`, including its purpose, dependencies, build process, and how to run it. It is based on patterns observed in the `memory` MCP server.
 
 ## Project Overview
 
-The `mcp_pytest_service` is an MCP (Model Context Protocol) server that integrates with pytest to provide context and memory capabilities for test runs. It allows capturing and storing information about test sessions, environments, and individual test outcomes.
+The `pytest-service` is an MCP (Model Context Protocol) server that integrates with pytest to provide context and memory capabilities for test runs. It allows capturing and storing information about test sessions, environments, and individual test outcomes.
 
 ## Dependencies
 
-The `mcp_pytest_service` has the following dependencies:
+The `pytest-service` has the following dependencies:
 
--   **MCP SDK (`@modelcontextprotocol/sdk`)**: This is the core dependency for building MCP servers. It provides the necessary classes and interfaces for creating servers, defining tools, and handling requests. The `mcp_pytest_service` uses the `Server` class and `StdioServerTransport` from the SDK for communication.
+-   **MCP SDK (`@modelcontextprotocol/sdk`)**: This is the core dependency for building MCP servers. It provides the necessary classes and interfaces for creating servers, defining tools, and handling requests. The `pytest-service` uses the `Server` class and `StdioServerTransport` from the SDK for communication.
 -   **Node.js**: The service is built using Node.js and requires a compatible version to be installed.
 -   **TypeScript**: The service is written in TypeScript and requires the TypeScript compiler (`tsc`) for building.
 -   **pytest** (for testing): The service integrates with pytest and requires it for running tests.
 
 ## Building
 
-The build process for `mcp_pytest_service` involves compiling the TypeScript code and making the output executable. The following steps are typically involved:
+The build process for `pytest-service` involves compiling the TypeScript code and making the output executable. The following steps are typically involved:
 
 1. **Compile TypeScript:**
     
@@ -33,7 +33,7 @@ The build process for `mcp_pytest_service` involves compiling the TypeScript cod
 
 ## Running
 
-The `mcp_pytest_service` can be run in different ways depending on its implementation and how it's packaged. Here's a guide on when to use `uvx`, `npx`, or `node`:
+The `pytest-service` can be run in different ways depending on its implementation and how it's packaged. Here's a guide on when to use `uvx`, `npx`, or `node`:
 
 **1. Running MCP Servers with `uvx` (Python-based):**
 
@@ -50,7 +50,7 @@ The `mcp_pytest_service` can be run in different ways depending on its implement
 -   Example for running an MCP server implemented as a local Python package with `uvx`:
 
     ```bash
-    uvx mcp-server-git --repository /Users/kieranlal/workspace/mcp_pytest_service
+    uvx mcp-server-git --repository /Users/kieranlal/workspace/pytest-service
     ```
 
     This command starts the `mcp-server-git` tool, which is configured to run an MCP service from the specified repository.
@@ -81,7 +81,7 @@ The `mcp_pytest_service` can be run in different ways depending on its implement
     node path/to/your/mcp_server.js
     ```
 
-**In the specific case of `mcp_pytest_service`:**
+**In the specific case of `pytest-service`:**
 
 -   Since it's being developed locally and uses `mcp-server-git` (which is Python-based), you would typically use `uvx` as shown in the example above.
 -   If it were a JavaScript-based server published as an npm package, you would use `npx`.
@@ -93,7 +93,7 @@ The `mcp_pytest_service` can be run in different ways depending on its implement
 
 ## Tool Definitions
 
-MCP servers define tools that can be called by clients. Tools are defined using JSON Schema to specify their input and output structures. The `mcp_pytest_service` defines the following tools:
+MCP servers define tools that can be called by clients. Tools are defined using JSON Schema to specify their input and output structures. The `pytest-service` defines the following tools:
 
 1. **`record_session_start`**: Called at the beginning of a pytest session to initialize the context for the current test run.
     
@@ -139,6 +139,7 @@ MCP servers define tools that can be called by clients. Tools are defined using 
         }
         
         ```
+4. **`service_status`**:  the response includes the service's name, version, the command used to start it, and the arguments passed.
         
 
 These tools are exposed through the `server.setRequestHandler()` API, as seen in the `memory` server implementation.
@@ -153,11 +154,11 @@ The `memory` MCP server provides a good example of how to build and run MCP serv
 -   Defining tool interfaces and input schemas using JSON Schema.
 -   Exposing tools through the `server.setRequestHandler()` API.
 
-These patterns can be used as a reference for building and running the `mcp_pytest_service`.
+These patterns can be used as a reference for building and running the `pytest-service`.
 
 ## Implementation Status
 
-The `mcp_pytest_service` is designed to integrate with the **TypeScript** version of the MCP SDK, not the Python SDK. It depends on the **MCP memory service** to store and retrieve information about test runs. Before running this service, ensure that the memory service is installed and running in the environment.
+The `pytest-service` is designed to integrate with the **TypeScript** version of the MCP SDK, not the Python SDK. It depends on the **MCP memory service** to store and retrieve information about test runs. Before running this service, ensure that the memory service is installed and running in the environment.
 
 The implementation of this service is similar to other MCP services like `memory`, `github`, `git`, and `fileserver`, all of which are typically run using `npx` when they are published as npm packages in the development environment.
 
@@ -165,7 +166,7 @@ The source code for these packages is available as a reference for using the MCP
 
 -   `memory`: Implements a basic in-memory knowledge graph. (npm package: `@modelcontextprotocol/server-memory`)
 -   `github`: Provides tools for interacting with the GitHub API. (npm package: `@modelcontextprotocol/server-github`)
--   `git`: Offers Git repository management capabilities. (Uses the `mcp-server-git` tool, with multiple instances in the configuration: `git-textgrad`, `git-mcp_pytest_service`, `git-ixl_scraper`, `git-mcp-installer`)
+-   `git`: Offers Git repository management capabilities. (Uses the `mcp-server-git` tool, with multiple instances in the configuration: `git-textgrad`, `git-pytest-service`, `git-ixl_scraper`, `git-mcp-installer`)
 -   `fileserver`: Enables file system operations. (npm package: `@modelcontextprotocol/server-filesystem`)
 
 By examining the source code of these services, you can gain a better understanding of how to structure and implement your own MCP servers using the TypeScript SDK.
@@ -180,7 +181,7 @@ In addition to the tools defined in this service, the following MCP servers are 
 - `@modelcontextprotocol/server-filesystem`: Allows file system operations.
 - `@modelcontextprotocol/server-sequential-thinking`: Newly installed server for sequential thinking capabilities.
 
-These servers can be used in conjunction with `mcp_pytest_service` to enhance its functionality and provide additional context for test runs.
+These servers can be used in conjunction with `pytest-service` to enhance its functionality and provide additional context for test runs.
 
 ## Logging Configuration
 
@@ -197,7 +198,7 @@ The service is configured with the following logging setup:
 
 ## Pytest Integration
 
-The `mcp_pytest_service` integrates with pytest through a `conftest.py` file that defines pytest hooks. When you run pytest in a directory containing tests and the `conftest.py` file:
+The `pytest-service` integrates with pytest through a `conftest.py` file that defines pytest hooks. When you run pytest in a directory containing tests and the `conftest.py` file:
 
 1. pytest automatically discovers and uses the `conftest.py` file
 2. The following hooks are triggered automatically:

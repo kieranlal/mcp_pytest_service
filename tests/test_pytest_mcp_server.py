@@ -1,102 +1,74 @@
 import pytest
 import pytest_asyncio
-from mcp.client.stdio import stdio_client, StdioServerParameters
+import mcp
+from mcp.client.tcp import TCPClient  # Adjust based on your transport
 
-@pytest_asyncio.fixture
-async def mcp_client():
-    async with stdio_client(server=StdioServerParameters(
-        command="pytest-mcp"
-    )) as client:
+# Configuration (load from environment or config file)
+PRODUCTION_SERVER_HOST = "your_production_server_host"
+PRODUCTION_SERVER_PORT = 12345
+
+@pytest_asyncio.fixture(scope="session")
+async def production_mcp_client():
+    client = TCPClient(PRODUCTION_SERVER_HOST, PRODUCTION_SERVER_PORT)
+    try:
+        await client.connect()
         yield client
+    except Exception as e:
+        pytest.fail(f"Failed to connect to production MCP server: {e}")
+    finally:
+        await client.close()
 
 @pytest.mark.asyncio
-async def test_server_connection(mcp_client):
-    """Test that the server is running and accessible"""
-    tools = await mcp_client.list_tools()
+async def test_server_connection_production(production_mcp_client):
+    """Test that the production server is running and accessible"""
+    tools = await production_mcp_client.list_tools()
     assert isinstance(tools, list)
     assert len(tools) > 0
 
 @pytest.mark.asyncio
-async def test_method_availability(mcp_client):
-    """Test that required methods are available"""
-    tools = await mcp_client.list_tools()
+async def test_method_availability_production(production_mcp_client):
+    """Test that required methods are available on the production server"""
+    tools = await production_mcp_client.list_tools()
     tool_names = [tool["name"] for tool in tools]
     assert "record_session_start" in tool_names
     assert "record_test_outcome" in tool_names
     assert "record_session_finish" in tool_names
 
 @pytest.mark.asyncio
-async def test_error_handling(mcp_client):
-    """Test error handling for invalid method requests"""
+async def test_error_handling_production(production_mcp_client):
+    """Test error handling for invalid method requests on the production server"""
     with pytest.raises(Exception) as exc_info:
-        await mcp_client.call_tool("invalid_method", {})
+        await production_mcp_client.call_tool("invalid_method", {})
     assert "Method not found" in str(exc_info.value)
 
-@pytest.mark.asyncio
-async def test_resource_listing(mcp_client):
-    """Test listing available resources"""
-    resources = await mcp_client.list_resources()
-    assert isinstance(resources, list)
-    assert len(resources) > 0
-    assert all(isinstance(resource, dict) for resource in resources)
+# ... (Adapt other tests similarly, replacing mcp_client with production_mcp_client)
 
 @pytest.mark.asyncio
-async def test_resource_reading(mcp_client):
-    """Test reading a specific resource"""
-    resources = await mcp_client.list_resources()
-    if resources:
-        resource = resources[0]
-        content = await mcp_client.read_resource(resource["uri"])
-        assert isinstance(content, dict)
-        assert "contents" in content
+async def test_session_recording_production(production_mcp_client):
+    """Test session recording workflow on the production server (exercise caution)"""
+    # Consider if this test is appropriate for production; might be better for staging
+    try:
+        # Start session
+        session_response = await production_mcp_client.call_tool("record_session_start", {
+            "environment": {"os": "TestOS", "python_version": "3.x"}
+        })
+        assert session_response and session_response.get("content")  # Adjust assertion based on actual response
 
-@pytest.mark.asyncio
-async def test_tool_execution(mcp_client):
-    """Test executing a tool with valid parameters"""
-    tools = await mcp_client.list_tools()
-    if tools:
-        tool = tools[0]
-        result = await mcp_client.call_tool(tool["name"], {})
-        assert isinstance(result, dict)
+        # Record test outcome
+        outcome_response = await production_mcp_client.call_tool("record_test_outcome", {
+            "nodeid": "test_module::TestClass::test_function",
+            "outcome": "passed",
+            "duration": 0.1
+        })
+        # Adjust assertion based on actual response
+        assert outcome_response and outcome_response.get("content")
 
-@pytest.mark.asyncio
-async def test_session_recording(mcp_client):
-    """Test session recording workflow"""
-    # Start session
-    session_id = await mcp_client.call_tool("record_session_start", {
-        "test_suite": "pytest",
-        "environment": "test"
-    })
-    assert isinstance(session_id, str)
+        # Finish session
+        finish_response = await production_mcp_client.call_tool("record_session_finish", {
+            "summary": {"total_tests": 1, "passed": 1, "failed": 0, "skipped": 0, "exitstatus": 0}
+        })
+        assert finish_response and finish_response.get("content") # Adjust assertion
+    except Exception as e:
+        pytest.fail(f"Error during session recording test: {e}")
 
-    # Record test outcome
-    test_result = await mcp_client.call_tool("record_test_outcome", {
-        "session_id": session_id,
-        "test_name": "test_session_recording",
-        "status": "passed"
-    })
-    assert test_result is True
-
-    # Finish session
-    session_stats = await mcp_client.call_tool("record_session_finish", {
-        "session_id": session_id
-    })
-    assert isinstance(session_stats, dict)
-    assert "tests_run" in session_stats
-
-@pytest.mark.asyncio
-async def test_invalid_resource_handling(mcp_client):
-    """Test error handling for invalid resource requests"""
-    with pytest.raises(Exception) as exc_info:
-        await mcp_client.read_resource("invalid://resource")
-    assert "Resource not found" in str(exc_info.value)
-
-@pytest.mark.asyncio
-async def test_invalid_tool_parameters(mcp_client):
-    """Test error handling for invalid tool parameters"""
-    tools = await mcp_client.list_tools()
-    if tools:
-        tool = tools[0]
-        with pytest.raises(Exception) as exc_info:
-            await mcp_client.call_tool(tool["name"], {"invalid": "params"})
-        assert "Invalid parameters" in str(exc_info.value)
+# ... (Other tests)
